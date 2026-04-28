@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LeadTrack v5 — Teste End-to-End</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0a0a0f; color: #e2e8f0; min-height: 300vh; }
+    .header { background: linear-gradient(135deg, #1e1b4b, #312e81); padding: 40px 20px; text-align: center; position: sticky; top: 0; z-index: 100; }
+    .header h1 { font-size: 28px; color: #a5b4fc; }
+    .header p { color: #94a3b8; margin-top: 8px; font-size: 14px; }
+    .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+    .card { background: #16161a; border: 1px solid #334155; border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+    .card h2 { color: #a5b4fc; font-size: 18px; margin-bottom: 12px; }
+    .card p { color: #94a3b8; font-size: 14px; line-height: 1.6; }
+    .status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; margin: 4px; }
+    .status.ok { background: #064e3b; color: #34d399; }
+    .status.pending { background: #1e1b4b; color: #818cf8; }
+    .status.fail { background: #450a0a; color: #f87171; }
+    .btn { display: inline-block; padding: 12px 24px; border-radius: 12px; font-weight: bold; font-size: 14px; cursor: pointer; border: none; margin: 8px; transition: all 0.2s; }
+    .btn-cta { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+    .btn-cta:hover { transform: scale(1.05); }
+    .btn-checkout { background: linear-gradient(135deg, #059669, #10b981); color: white; }
+    a.btn-checkout { text-decoration: none; color: white; }
+    #log-area { background: #0f0f14; border: 1px solid #1e293b; border-radius: 12px; padding: 16px; font-family: 'Cascadia Code', monospace; font-size: 12px; color: #22d3ee; max-height: 400px; overflow-y: auto; white-space: pre-wrap; }
+    .checklist { list-style: none; }
+    .checklist li { padding: 8px 0; border-bottom: 1px solid #1e293b; display: flex; align-items: center; gap: 12px; }
+    .checklist li::before { content: "⬜"; }
+    .checklist li.done::before { content: "✅"; }
+    form { display: flex; flex-direction: column; gap: 12px; }
+    input { background: #1e1b4b; border: 1px solid #334155; border-radius: 8px; padding: 12px; color: white; font-size: 14px; }
+    input::placeholder { color: #64748b; }
+    .section-label { background: #1e293b; color: #94a3b8; padding: 8px 16px; border-radius: 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px; display: inline-block; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>🧪 LeadTrack v5 — Teste End-to-End</h1>
+    <p>Simule ações de um visitante real e verifique no banco de dados</p>
+    <div style="margin-top: 16px;">
+      <span class="status pending" id="status-pageview">⏳ PageView</span>
+      <span class="status pending" id="status-scroll">⏳ Scroll</span>
+      <span class="status pending" id="status-click">⏳ Click</span>
+      <span class="status pending" id="status-form">⏳ Form</span>
+      <span class="status pending" id="status-checkout">⏳ Checkout</span>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- Seção 1: PageView -->
+    <div class="card">
+      <div class="section-label">Evento 1 — Automático</div>
+      <h2>📄 PageView</h2>
+      <p>Este evento foi disparado automaticamente quando você abriu esta página. Confira o console (F12) para ver o log <code>[LeadTrack] → [pageview]</code></p>
+    </div>
+
+    <!-- Seção 2: Scroll -->
+    <div class="card">
+      <div class="section-label">Evento 2 — Automático</div>
+      <h2>📜 Scroll Tracking</h2>
+      <p>Role a página para baixo. O tracker dispara em: <strong>25%, 50%, 75%, 90%, 100%</strong></p>
+      <p style="margin-top: 8px; color: #6366f1;">Dica: esta página tem 300vh de altura para permitir scroll real.</p>
+    </div>
+
+    <!-- Seção 3: Click CTA -->
+    <div class="card">
+      <div class="section-label">Evento 3 — Clique</div>
+      <h2>🖱️ Click Tracking</h2>
+      <p>Clique no botão abaixo. O tracker captura cliques em elementos com classes/atributos específicos.</p>
+      <div style="margin-top: 16px;">
+        <button class="btn btn-cta" data-lt-track="cta-test" id="btn-test-cta">
+          Comprar Agora (Teste)
+        </button>
+      </div>
+    </div>
+
+    <!-- Evento 5 — Personalização -->
+    <div class="card" style="border: 2px dashed #6366f1; background: #6366f10d;">
+        <div class="section-label">Evento 5 — Personalização Real-Time</div>
+        <h2>💎 Personalização Real-Time</h2>
+        <p style="margin-bottom: 16px;">Este bloco é montado via script usando os dados que o LeadTrack buscou no banco.</p>
+        
+        <div id="personalization-hub" style="padding: 16px; background: #0a0a0c; border-radius: 12px; border: 1px solid #6366f133; display: none;">
+            <h3 style="color: #818cf8; margin-bottom: 8px;">💎 Olá, <span id="lead-name-display">Visitante</span>!</h3>
+            <p style="font-size: 12px;">Seu score atual é: <span id="lead-score-display" style="color: white; font-weight: bold;">0</span> pontos.</p>
+            <p id="lead-status-msg" style="font-size: 10px; margin-top: 8px; color: #34d399; font-style: italic;"></p>
+        </div>
+        
+        <div id="personalization-loading" style="text-align: center; padding: 16px; color: #64748b; font-style: italic; font-size: 14px;">
+            <p>Aguardando rehidratação de identidade...</p>
+        </div>
+    </div>
+
+    <!-- Evento 6 — Atribuição de Checkout -->
+    <div class="card" style="border: 2px dashed #10b981; background: #10b9810d;">
+        <div class="section-label">Evento 6 — Atribuição de Checkout</div>
+        <h2>🔗 Link Decorator</h2>
+        <p style="margin-bottom: 16px;">O tracker detecta este link da Hotmart e anexa seu ID automaticamente.</p>
+        
+        <a href="https://pay.hotmart.com/XYZ123?checkoutMode=10" target="_blank" class="btn btn-checkout" style="width: 100%; text-align: center;">
+            Simular Botão de Compra (Hotmart)
+        </a>
+        <p style="font-size: 10px; text-align: center; margin-top: 8px; color: #64748b;">Passe o mouse para ver o link decorado no navegador.</p>
+    </div>
+
+    <!-- Seção 4: Form Submit -->
+    <div class="card">
+      <div class="section-label">Evento 4 — Formulário</div>
+      <h2>📝 Form Submit + Identity Resolution</h2>
+      <p>Preencha e envie. O tracker captura email/name/phone e faz o identify.</p>
+      <form id="test-form" style="margin-top: 16px;" onsubmit="event.preventDefault(); return false;">
+        <input type="text" name="nome" placeholder="Seu nome (ex: Gabriel Santos)" />
+        <input type="email" name="email" placeholder="Seu email (ex: teste@vivatdah.com)" />
+        <input type="tel" name="celular" placeholder="WhatsApp (ex: 11999999999)" />
+        <button type="button" class="btn btn-cta" style="align-self: flex-start;" onclick="handleTestForm(event)">Enviar Formulário</button>
+      </form>
+    </div>
+
+    <!-- Seção 6: Begin Checkout -->
+    <div class="card">
+      <div class="section-label">Evento 5 — Checkout</div>
+      <h2>🛒 Begin Checkout</h2>
+      <p>Clique no link abaixo. O tracker detecta URLs com "checkout" e dispara begin_checkout.</p>
+      <div style="margin-top: 16px;">
+        <a href="https://vivatdah.com.br/checkout" class="btn btn-checkout" target="_blank" onclick="markStatus('status-checkout')">
+          Ir para Checkout (Teste)
+        </a>
+      </div>
+    </div>
+
+    <!-- Seção MAUTIC SIMULATOR -->
+    <div class="card" style="border: 1px solid #db2777; background: #5007241a;">
+      <div class="section-label" style="background: #db2777; color: white;">Mautic 7.0 — Simulador de Webhook</div>
+      <h2>🧪 Testar Ingestão de E-mail & CRM</h2>
+      <p>Estes botões simulam o Mautic avisando o LeadTrack que algo aconteceu lá fora. Use para validar a Timeline Forense.</p>
+      
+      <div style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
+        <button class="btn" style="background: #db2777; color: white;" onclick="simulateMautic('mautic.email_on_open', 'E-mail Aberto: Boas Vindas')">
+          📧 Simular Abertura de E-mail
+        </button>
+        <button class="btn" style="background: #db2777; color: white;" onclick="simulateMautic('mautic.email_on_click', 'Clique no Link: Oferta Especial')">
+          🖱️ Simular Clique no E-mail
+        </button>
+        <button class="btn" style="background: #4b5563; color: white;" onclick="simulateMautic('mautic.lead_identified', 'Contato Identificado no Mautic')">
+          👤 Simular Sync de Contato
+        </button>
+      </div>
+      
+      <div id="mautic-status" style="margin-top: 12px; font-size: 11px; font-family: monospace; color: #f472b6;">
+        Aguardando simulação...
+      </div>
+    </div>
+
+    <!-- Seção 7: API Manual -->
+    <div class="card">
+      <div class="section-label">Evento 6 — API Manual</div>
+      <h2>⚙️ LeadTrack.identify() / LeadTrack.track()</h2>
+      <p>Teste a API pública do tracker diretamente pelo console:</p>
+      <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+        <button class="btn btn-cta" onclick="window.LeadTrack.identify({name:'Gabriel Teste',email:'marfrio12@gmail.com',phone:'27999999999'})">
+          Identificar Lead (Form)
+        </button>
+        <button class="btn btn-cta" style="background: #22c55e;" onclick="window.LeadTrack.track('purchase',{value:197.90,currency:'BRL',product_name:'Produto VIP Teste'})">
+          💰 Simular Compra (R$ 197,90)
+        </button>
+      </div>
+    </div>
+
+    <!-- Log Area -->
+    <div class="card">
+      <h2>📋 Console Log (Eventos Capturados)</h2>
+      <div id="log-area">Aguardando eventos...\n</div>
+    </div>
+
+    <!-- Checklist -->
+    <div class="card">
+      <h2>✅ Checklist de Validação no Banco</h2>
+      <p style="margin-bottom: 16px;">Após testar, vá no <strong>Supabase → Table Editor</strong> e verifique:</p>
+      <ul class="checklist">
+        <li>lt_leads → Novo registro com seu lt_id</li>
+        <li>lt_leads → fbp e fbc preenchidos (se Pixel FB ativo)</li>
+        <li>lt_leads → first_utm_source = "test" (da URL)</li>
+        <li>lt_visits → Registro com page_url desta página</li>
+        <li>lt_events → Evento pageview</li>
+        <li>lt_events → Evento scroll (25%, 50%, etc)</li>
+        <li>lt_events → Evento click (btn-test-cta)</li>
+        <li>lt_events → Evento form_submit (com email no metadata)</li>
+        <li>lt_leads → email preenchido após form_submit</li>
+        <li>lt_events → Evento begin_checkout</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- Interceptor de Logs (DEVE VIR ANTES DO TRACKER) -->
+  <script>
+    var logArea;
+    var origLog = console.log;
+    
+    // Preparar o interceptor antes do tracker carregar
+    console.log = function() {
+      origLog.apply(console, arguments);
+      var args = Array.prototype.slice.call(arguments);
+      logArea = document.getElementById("log-area");
+      
+      if (logArea && args[0] && typeof args[0] === "string" && args[0].indexOf("[LeadTrack]") === 0) {
+        var text = args.map(function(a) {
+          return typeof a === "object" ? JSON.stringify(a, null, 2) : String(a);
+        }).join(" ");
+        
+        // Limpar mensagem inicial
+        if (logArea.textContent.trim() === "Aguardando eventos...") {
+          logArea.textContent = "";
+        }
+        
+        logArea.textContent += text + "\n";
+        logArea.scrollTop = logArea.scrollHeight;
+
+        // Auto-mark status
+        if (text.indexOf("pageview") > -1) markStatus("status-pageview");
+        if (text.indexOf("scroll") > -1) markStatus("status-scroll");
+        if (text.indexOf("click") > -1) markStatus("status-click");
+        if (text.indexOf("identify") > -1) markStatus("status-form");
+      }
+    };
+
+    function markStatus(id) {
+      var el = document.getElementById(id);
+      if (el) { el.className = "status ok"; el.textContent = "✅ " + el.textContent.replace(/^[⏳✅] /, ""); }
+    }
+  </script>
+
+  <!-- Carregar o tracker.js -->
+  <script src="./tracker.js"></script>
+
+  <script>
+    async function simulateMautic(event, name) {
+      var statusEl = document.getElementById("mautic-status");
+      statusEl.textContent = "🚀 Enviando sinal para o LeadTrack...";
+      
+      const url = "https://zvxttgsilqqcmpuzgcoy.supabase.co/rest/v1/rpc/lt_mautic_webhook_handler?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2eHR0Z3NpbHFxY21wdXpnY295Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTQ1NTAsImV4cCI6MjA4OTI3MDU1MH0.5TXF-zeRS47skT04Uq-1k8FcvkOsWZrmwjgH9-S9218";
+      
+      // Payload idêntico ao que o Mautic 7.0 envia
+      const payload = {
+        "mautic.webhook_event": event,
+        "mautic.timestamp": new Date().toISOString(),
+        "mautic.lead": {
+          "id": "mtc_test_999",
+          "email": "marfrio12@gmail.com",
+          "firstname": "Gabriel Teste Mautic",
+          "points": 50
+        },
+        "mautic.event_name": name
+      };
+
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        
+        if (response.ok) {
+          statusEl.style.color = "#34d399";
+          statusEl.textContent = "✅ SUCESSO: Evento '" + name + "' injetado na Timeline!";
+        } else {
+          statusEl.style.color = "#f87171";
+          statusEl.textContent = "❌ ERRO: " + JSON.stringify(result);
+        }
+      } catch (err) {
+        statusEl.style.color = "#f87171";
+        statusEl.textContent = "❌ FALHA NA CONEXÃO: " + err.message;
+      }
+    }
+
+    // --- Lógica de Personalização (Etapa 1 do Plano) ---
+    if (window.LeadTrack) {
+        window.LeadTrack.onReady(function(lead) {
+            console.log("💎 Personalização Recebida:", lead);
+            
+            const hub = document.getElementById("personalization-hub");
+            const loading = document.getElementById("personalization-loading");
+            const nameDisplay = document.getElementById("lead-name-display");
+            const scoreDisplay = document.getElementById("lead-score-display");
+            const statusMsg = document.getElementById("lead-status-msg");
+
+            if (lead && lead.status !== 'anonymous') {
+                nameDisplay.textContent = lead.first_name || lead.name || "Visitante";
+                scoreDisplay.textContent = lead.score || 0;
+                
+                if (lead.score > 50) {
+                    statusMsg.textContent = "🚀 Lead VIP detectado! Liberando oferta exclusiva via script...";
+                } else {
+                    statusMsg.textContent = "👤 Lead identificado. Personalizando experiência...";
+                }
+
+                loading.style.display = "none";
+                hub.style.display = "block";
+            } else {
+                loading.textContent = "🕵️ Visitante Anônimo. Identifique-se no formulário abaixo para ver a mágica!";
+            }
+        });
+    }
+
+    function handleTestForm(e) {
+      if (e) e.preventDefault();
+      
+      var form = document.getElementById("test-form");
+      
+      // Disparar o evento de 'submit' manualmente para o tracker.js capturar
+      var submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+      form.dispatchEvent(submitEvent);
+
+      // Simular um pequeno delay para mostrar feedback visual
+      var btn = document.querySelector("#test-form button");
+      var originalText = btn.innerText;
+      btn.innerText = "⏳ Capturando...";
+      btn.disabled = true;
+
+      setTimeout(function() {
+        btn.innerText = "✅ Capturado com Sucesso!";
+        btn.style.backgroundColor = "#059669";
+        markStatus("status-form");
+        
+        setTimeout(function() {
+          btn.innerText = originalText;
+          btn.style.backgroundColor = "";
+          btn.disabled = false;
+        }, 2000);
+      }, 800);
+
+      return false;
+    }
+  </script>
+
+</body>
+</html>

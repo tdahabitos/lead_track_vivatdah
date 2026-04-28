@@ -1,0 +1,23 @@
+{
+  "name": "@leadtrack/api",
+  "version": "1.0.0",
+  "description": "LeadTrack Ingestion Engine — Identity Resolution & Advanced Matching API",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "migrate": "tsx src/migrations/run.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.0",
+    "@supabase/supabase-js": "^2.49.0",
+    "hono": "^4.7.0",
+    "dotenv": "^16.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
