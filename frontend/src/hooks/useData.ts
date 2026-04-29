@@ -302,15 +302,15 @@ export function useCheckoutHealth(companyId: number = 1, days: number = 30) {
 
       // Metrics calculation
       const initCheckouts = events?.filter(e => e.event_type === 'begin_checkout').length || 0;
-      const approvedSales = events?.filter(e => e.event_type === 'purchase' && e.event_name.includes('approved')).length || 0;
-      const rejectedSales = events?.filter(e => e.event_type === 'purchase' && (e.event_name.includes('canceled') || e.event_name.includes('refunded'))).length || 0;
+      const approvedSales = events?.filter(e => e.event_type === 'purchase' && (e.event_name || '').includes('approved')).length || 0;
+      const rejectedSales = events?.filter(e => e.event_type === 'purchase' && ((e.event_name || '').includes('canceled') || (e.event_name || '').includes('refunded'))).length || 0;
       
       const approvalRate = (approvedSales + rejectedSales) > 0 
         ? ((approvedSales / (approvedSales + rejectedSales)) * 100).toFixed(1) 
         : 0;
 
       const totalRevenue = events
-        ?.filter(e => e.event_type === 'purchase' && e.event_name.includes('approved'))
+        ?.filter(e => e.event_type === 'purchase' && (e.event_name || '').includes('approved'))
         .reduce((acc, e) => acc + parseFloat(e.net_value || '0'), 0) || 0;
 
       // Map for sales report
