@@ -22,7 +22,17 @@ function KpiCard({ title, value, icon: Icon, colorClass }: any) {
 
 export function CheckoutHealth() {
   const { days } = useFilter();
-  const { data, isLoading } = useCheckoutHealth(1, days);
+  const { data, isLoading, isError } = useCheckoutHealth(1, days);
+  
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 bg-rose-500/10 border border-rose-500/20 rounded-2xl p-8">
+        <AlertTriangle className="w-12 h-12 text-rose-500 mb-4" />
+        <h3 className="text-xl font-bold text-white mb-2">Erro ao carregar dados</h3>
+        <p className="text-slate-400 text-center">Não conseguimos conectar ao banco de dados agora. Por favor, verifique sua conexão ou tente novamente em instantes.</p>
+      </div>
+    );
+  }
 
   if (isLoading || !data) {
     return (

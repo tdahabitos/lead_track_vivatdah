@@ -321,7 +321,7 @@ export function useCheckoutHealth(companyId: number = 1, days: number = 30) {
           name: e.lt_leads?.name || 'Lead ' + e.lead_id,
           email: e.lt_leads?.email,
           phone: e.lt_leads?.phone,
-          status: e.event_name.replace('guru_', '').toUpperCase(),
+          status: (e.event_name || '').replace('guru_', '').toUpperCase() || 'PAGAMENTO',
           value: e.event_value,
           net_value: e.net_value,
           time: new Date(e.event_at).toLocaleString(),
