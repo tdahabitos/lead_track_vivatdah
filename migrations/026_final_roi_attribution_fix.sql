@@ -32,7 +32,7 @@ BEGIN
                 (SELECT utm_campaign FROM lt_visits v WHERE v.lead_id = e.lead_id AND v.utm_campaign IS NOT NULL ORDER BY v.created_at DESC LIMIT 1),
                 'Direto/Outros'
             ) as campaign_found,
-            (e.metadata->>'amount')::numeric as revenue
+            COALESCE(e.net_value, (e.event_value)::numeric, 0) as revenue
         FROM lt_events e
         WHERE e.company_id = p_company_id 
           AND e.event_type = 'purchase'
